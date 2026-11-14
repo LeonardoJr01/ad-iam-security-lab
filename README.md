@@ -24,14 +24,14 @@ Out of scope for this phase: MFA, Entra ID integration, PAM, LAPS and GPO harden
 | Hostname | `DC01` |
 | Domain | `lab.local` (NetBIOS: `LAB`) |
 | Functional level | Windows Server 2016 (`WinThreshold`) |
-| Network | Internal or host-only adapter, static IP, DC acts as its own DNS |
+| Network | Static IP `192.168.1.10/24`, DC acts as its own DNS |
 
 ### OU structure
 
 ```
 lab.local
 ├── Admins              administrative accounts
-├── Users
+├── Employees
 │   ├── Standard        standard users
 │   └── Sensitive       users with access to restricted data
 ├── Services            service accounts
