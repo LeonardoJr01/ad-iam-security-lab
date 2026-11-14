@@ -2,7 +2,7 @@
 
 A Windows Server 2022 Active Directory lab built to practice Identity and Access Management (IAM) fundamentals: organizational structure, role-based groups, password and lockout policy, auditing, and repeatable provisioning with PowerShell.
 
-> **Status:** work in progress. The design is documented; implementation, scripts and evidence are being added step by step. Sections marked `pending` are not yet done.
+> **Status:** implemented and validated. All 48 automated checks pass. One evidence item is still pending: the `dcdiag` re-run.
 
 ## Goals
 
@@ -68,17 +68,24 @@ No passwords are stored in this repository. Scripts prompt for credentials at ru
 
 ## Control to evidence map
 
-Each control is meant to be backed by a command anyone can run and an output file or screenshot.
+Each control is backed by a command anyone can run and an output file or screenshot.
 
 | Control | Validation command | Evidence | Status |
 |---------|--------------------|----------|--------|
-| OU structure | `Get-ADOrganizationalUnit -Filter *` | `docs/outputs/ous.txt` | pending |
-| Groups and membership | `Get-ADGroupMember -Identity <group>` | `docs/outputs/groups.txt` | pending |
-| Password policy | `Get-ADDefaultDomainPasswordPolicy` | `docs/outputs/password-policy.txt` | pending |
-| Weak password rejected | Attempt to set `123` on a test user | `docs/evidence/03-weak-password.png` | pending |
-| Account lockout | 3 failed logons, then Event ID 4740 in the Security log | `docs/evidence/04-lockout-4740.png` | pending |
-| Auditing enabled | `auditpol /get /category:*` | `docs/outputs/auditpol.txt` | pending |
-| Service account exception | `Get-ADUser -Filter {PasswordNeverExpires -eq $true}` | `docs/outputs/service-accounts.txt` | pending |
+| Domain and forest | `Get-ADDomain`, `Get-ADForest` | `docs/outputs/ad-domain.txt`, `docs/outputs/ad-forest.txt`, `docs/evidence/01-domain.png`, `docs/evidence/01-forest.png` | done |
+| DNS resolution | `Resolve-DnsName lab.local` | `docs/outputs/dns.txt` | done |
+| Firewall enabled | `Get-NetFirewallProfile` | `docs/outputs/firewall.txt`, `docs/evidence/02-firewall-enabled.png` | done |
+| OU structure | `Get-ADOrganizationalUnit -Filter *` | `docs/outputs/ous.txt`, `docs/evidence/05-ou-structure.png` | done |
+| Groups and membership | `Get-ADGroupMember -Identity <group>` | `docs/outputs/groups.txt`, `docs/outputs/users.txt` | done |
+| Password policy | `Get-ADDefaultDomainPasswordPolicy` | `docs/outputs/password-policy.txt`, `docs/evidence/06-password-policy.png` | done |
+| Weak password rejected | Attempt to set a weak password on a test user | `docs/evidence/03-weak-password.png` | done |
+| Account lockout | 3 failed logons, then Event ID 4740 in the Security log | `docs/evidence/04-lockout-4740.png` | done |
+| Auditing enabled | `auditpol /get /category:*` | `docs/outputs/auditpol.txt` | done |
+| Service account exception | `Get-ADUser -Filter {PasswordNeverExpires -eq $true}` | `docs/outputs/service-accounts.txt` | done |
+| Automated compliance | `scripts/Test-ADLab.ps1 -OutFile compliance.txt` | `docs/outputs/compliance.txt` (48 of 48 pass) | done |
+| Domain controller health | `dcdiag` | `docs/outputs/dcdiag.txt` | pending |
+
+Account lockout is validated manually because it needs real failed logons.
 
 ## Repository layout
 
@@ -87,9 +94,9 @@ Each control is meant to be backed by a command anyone can run and an output fil
 ├── README.md
 ├── DESIGN.md
 ├── scripts/
-│   ├── Setup-ADLab.ps1      OUs, groups, users (planned)
-│   ├── Harden-ADLab.ps1     password policy and auditing (planned)
-│   └── Test-ADLab.ps1       compliance checks (planned)
+│   ├── Setup-ADLab.ps1      OUs, groups, users
+│   ├── Harden-ADLab.ps1     password policy and auditing
+│   └── Test-ADLab.ps1       compliance checks
 └── docs/
     ├── evidence/            numbered screenshots
     └── outputs/             command output as text
@@ -97,7 +104,7 @@ Each control is meant to be backed by a command anyone can run and an output fil
 
 ## How to reproduce
 
-Planned flow once the scripts are published:
+Flow used to build and validate the lab:
 
 1. Create a `DC01` VM in VirtualBox with Windows Server 2022, 4 GB RAM, 2 vCPUs and 30 GB disk.
 2. Set a static IP, point DNS to `127.0.0.1` and rename the host to `DC01`.
@@ -105,16 +112,36 @@ Planned flow once the scripts are published:
 4. Run `scripts/Setup-ADLab.ps1`, then `scripts/Harden-ADLab.ps1`, then `scripts/Test-ADLab.ps1`.
 5. Compare the output with the files in `docs/outputs/`.
 
-The Windows Firewall stays enabled. Only the ports required by AD DS and DNS are allowed (53, 88, 135, 389, 445, 464, 636, 3268, 3269 and the dynamic RPC range).
+The Windows Firewall stays enabled on all profiles (see `docs/outputs/firewall.txt`). The AD DS promotion creates the rules that AD DS and DNS need.
+
+The scripts ask for three passwords at run time (administrative account, standard and sensitive users, service account), each with at least 12 characters.
+
+## Issues found and resolved
+
+| Symptom | Cause | Resolution |
+|---------|-------|------------|
+| `Set-NetFirewallProfile -Enabled $false` fails with a `GpoBoolean` cast error | The parameter takes `True` or `False`, not a PowerShell boolean | Use `-Enabled True` or `-Enabled False` |
+| A script fails to parse with "string is missing the terminator" | Non-ASCII characters in a file without BOM were read as Windows-1252 by Windows PowerShell 5.1, and one byte became a quotation mark | Scripts are ASCII-only |
+| `New-ADOrganizationalUnit` fails with "name already in use" for `OU=Users` | The built-in `CN=Users` container uses the same name at the domain root | The OU was renamed to `Employees` |
+| `dcdiag` fails the `DFSREvent` and `SystemLog` tests | The VM was powered off without a clean shutdown, and the events fall inside the 24 hour window the tests inspect | Wait 24 hours and re-run; the logs are not cleared |
+| First compliance run reported 6 failures | The copy of the test script inside the VM still used the old OU name | Test script updated; second run passed 48 of 48 |
+
+## Known limitations
+
+- The built-in `Administrator` account has a password that never expires (visible in `service-accounts.txt`). It is not remediated in this phase.
+- `GG-Lab-Admins` is nested in `Domain Admins` to keep the lab simple. In production, rights would be delegated per OU.
+- Audit settings are applied with `auditpol` on DC01 only; a GPO could override them later.
+- No MFA, LAPS, GPO hardening or tiered administration yet.
+- Single domain controller with an evaluation license.
 
 ## Roadmap
 
 - [x] Design document
-- [ ] DC01 deployed and domain created
-- [ ] Provisioning script
-- [ ] Password policy and auditing
-- [ ] Compliance test script
-- [ ] Evidence and control map completed
+- [x] DC01 deployed and domain created
+- [x] Provisioning script
+- [x] Password policy and auditing
+- [x] Compliance test script
+- [ ] Evidence and control map completed (`dcdiag` pending)
 - [ ] Follow-up: GPO hardening, LAPS, Entra ID sync, MFA
 
 ## References
