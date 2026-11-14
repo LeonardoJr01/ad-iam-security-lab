@@ -1,0 +1,8 @@
+﻿
+
+Name       : lab.local
+ForestMode : Windows2016Forest
+Domains    : {lab.local}
+
+
+

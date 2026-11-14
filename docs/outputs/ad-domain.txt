@@ -1,0 +1,9 @@
+﻿
+
+DNSRoot     : lab.local
+NetBIOSName : LAB
+DomainMode  : Windows2016Domain
+PDCEmulator : DC01.lab.local
+
+
+

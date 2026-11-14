@@ -1,0 +1,8 @@
+﻿
+Name                                           Type   TTL   Section    IPAddress                  
+----                                           ----   ---   -------    ---------                  
+lab.local                                      AAAA   600   Answer     fd17:625c:f037:2:38e6:2114:
+                                                                       3536:5d54                  
+lab.local                                      A      600   Answer     192.168.1.10               
+
+
