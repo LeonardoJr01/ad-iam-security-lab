@@ -1,0 +1,25 @@
+﻿=== GG-Lab-Admins ===
+
+Name         SamAccountName objectClass
+----         -------------- -----------
+Admin Master adm.master     user
+
+=== GG-Sensitive-Users ===
+
+Name            SamAccountName  objectClass
+----            --------------  -----------
+Finance Manager finance.manager user
+
+=== GG-Service-Accounts ===
+
+Name           SamAccountName objectClass
+----           -------------- -----------
+Service Backup svc.backup     user
+
+=== GG-Standard-Users ===
+
+Name         SamAccountName objectClass
+----         -------------- -----------
+Joao Silva   joao.silva     user       
+Maria Santos maria.santos   user
+

@@ -1,0 +1,12 @@
+﻿
+Name               DistinguishedName                        
+----               -----------------                        
+Domain Controllers OU=Domain Controllers,DC=lab,DC=local    
+Admins             OU=Admins,DC=lab,DC=local                
+Employees          OU=Employees,DC=lab,DC=local             
+Services           OU=Services,DC=lab,DC=local              
+Groups             OU=Groups,DC=lab,DC=local                
+Standard           OU=Standard,OU=Employees,DC=lab,DC=local 
+Sensitive          OU=Sensitive,OU=Employees,DC=lab,DC=local
+
+

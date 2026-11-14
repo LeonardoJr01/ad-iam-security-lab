@@ -1,0 +1,13 @@
+﻿
+Name            SamAccountName  Enabled
+----            --------------  -------
+Administrator   Administrator      True
+Guest           Guest             False
+krbtgt          krbtgt            False
+Admin Master    adm.master         True
+Joao Silva      joao.silva         True
+Maria Santos    maria.santos       True
+Finance Manager finance.manager    True
+Service Backup  svc.backup         True
+
+
