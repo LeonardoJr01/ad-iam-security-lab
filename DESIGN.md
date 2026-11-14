@@ -1,89 +1,89 @@
-# Design do Lab: Active Directory para IAM
+# Lab Design: Active Directory for IAM
 
-## 1. Objetivo
+## 1. Objective
 
-Construir um domínio Active Directory em laboratório que demonstre:
+Build a lab Active Directory domain that demonstrates:
 
-- Modelo de OUs separando tipos de conta (administrativa, usuário, serviço)
-- Grupos por função, com concessão de acesso via grupo (não por usuário)
-- Política de senha e bloqueio alinhada a boas práticas (NIST SP 800-63B, CIS)
-- Auditoria de logon e alterações de grupo
-- Provisionamento automatizado em PowerShell, reproduzível
+- An OU model that separates account types (administrative, standard, sensitive, service)
+- Role-based groups, with access granted through groups rather than individual users
+- Password and lockout policy aligned with good practice (NIST SP 800-63B, CIS)
+- Auditing of logon events and group membership changes
+- Reproducible provisioning with PowerShell
 
-Fora de escopo nesta fase: MFA, integração com cloud (Entra ID), PAM, LAPS.
+Out of scope for this phase: MFA, cloud integration (Entra ID), PAM, LAPS.
 
-## 2. Arquitetura
+## 2. Architecture
 
-| Item | Valor |
+| Item | Value |
 |------|-------|
-| Hypervisor | VirtualBox 7.x no Windows 11 |
-| Sistema | Windows Server 2022 Standard (Desktop Experience) |
-| Nome da VM | DC01 |
-| Domínio | lab.local (NetBIOS: LAB) |
-| Nível funcional | WinThreshold (2016+) |
-| Rede | Adaptador interno (Host-only ou Rede Interna), IP estático 192.168.56.10 |
-| DNS | Servido pelo próprio DC (127.0.0.1) |
+| Hypervisor | VirtualBox 7.x on Windows 11 |
+| Operating system | Windows Server 2022 Standard (Desktop Experience) |
+| VM name | DC01 |
+| Domain | lab.local (NetBIOS: LAB) |
+| Functional level | WinThreshold (2016+) |
+| Network | Internal network or Host-only adapter, static IP 192.168.56.10 |
+| DNS | Served by the DC itself (127.0.0.1) |
 
-Rede: não usar NAT para o DC. Com NAT, o cliente não resolve o domínio nem fica acessível para testes de autenticação a partir de outra VM.
+Network note: do not use NAT for the DC. With NAT, a client VM cannot resolve the domain or reach the DC, which blocks authentication tests from a second machine.
 
-### Estrutura de OUs
+### OU structure
 
 ```
 lab.local
-├── Administradores      ← contas administrativas (adm.*)
-├── Usuarios
-│   ├── Padrao           ← usuários comuns
-│   └── Sensivel         ← usuários com acesso a dados restritos
-├── Servicos             ← contas de serviço (svc.*)
-└── Grupos               ← grupos de segurança
+├── Admins              ← administrative accounts (adm.*)
+├── Users
+│   ├── Standard        ← regular users
+│   └── Sensitive       ← users with access to restricted data
+├── Services            ← service accounts (svc.*)
+└── Groups              ← security groups
 ```
 
-Motivo: GPOs e permissões são aplicadas por OU. Separar contas administrativas das comuns permite aplicar política diferente em cada uma e evita que uma conta admin fique exposta em estações de usuário.
+Reason: GPOs and delegated permissions apply per OU. Keeping administrative accounts apart from regular ones allows a different policy for each and prevents an admin account from sitting alongside user workstations.
 
-### Grupos
+### Groups
 
-| Grupo | Função | Membros iniciais |
-|-------|--------|------------------|
-| GG-Admins-Lab | Administração do lab | adm.master |
-| GG-Usuarios-Padrao | Acesso básico | joao.silva, maria.santos |
-| GG-Usuarios-Sensivel | Acesso a dados restritos | financeiro.manager |
-| GG-Servicos | Contas de serviço | svc.backup |
-
-Convenção: `GG-` para grupos globais de função. Permissões em recursos são concedidas a grupos, nunca a usuários individuais.
-
-## 3. Controles e decisões
-
-| Controle | Valor | Justificativa |
-|----------|-------|---------------|
-| Comprimento mínimo | 12 caracteres | NIST 800-63B recomenda extensão a comprimento, não complexidade rígida. 12 é o piso prático para lab com complexidade habilitada. |
-| Complexidade | Habilitada | Mantém compatibilidade com controles de auditoria do CIS e com ambientes que ainda exigem. |
-| Idade máxima | 90 dias | Alinha com política corporativa comum. Revisar se a organização adotar NIST (sem expiração periódica quando há MFA). |
-| Histórico | 5 senhas | Evita reutilização imediata. |
-| Lockout | 3 tentativas em 30 min, bloqueio de 30 min | Limita brute force sem criar negação de serviço trivial. |
-| Senha inicial | Troca no primeiro logon | Nenhuma senha inicial definida no script é reaproveitada em produção. |
-| Contas de serviço | Senha sem expiração, documentada como exceção | Serviços não suportam troca interativa. Mitigação: senha longa, acesso restrito por grupo, revisão periódica. |
-| Auditoria | Logon e gerenciamento de grupos (sucesso e falha) | Permite detectar tentativas de acesso e alteração de privilégio. |
-
-## 4. Segredos
-
-- Nenhuma senha é gravada nos scripts. Os scripts pedem as senhas em tempo de execução (`Read-Host -AsSecureString`).
-- Senhas de laboratório ficam apenas no gerenciador de senhas do autor.
-- Se alguma senha de teste tiver sido commitada, considerar comprometida: trocar e reescrever o histórico antes de tornar o repositório público.
-
-## 5. Plano de execução
-
-| Etapa | Entrega | Commit sugerido |
+| Group | Purpose | Initial members |
 |-------|---------|-----------------|
-| 1 | DESIGN.md e README inicial | `docs: design inicial do lab` |
-| 2 | Setup da VM e promoção a DC | `docs: passo a passo de instalação do DC` |
-| 3 | OUs, grupos e usuários | `feat: script de criação de OUs, grupos e usuários` |
-| 4 | Política de senha e auditoria | `feat: política de senha e auditoria` |
-| 5 | Validação de conformidade | `test: script de validação de controles` |
-| 6 | Evidências e tabela controle → evidência | `docs: README com evidências` |
+| GG-Lab-Admins | Lab administration | adm.master |
+| GG-Standard-Users | Basic access | joao.silva, maria.santos |
+| GG-Sensitive-Users | Access to restricted data | finance.manager |
+| GG-Service-Accounts | Service accounts | svc.backup |
 
-## 6. Critérios de conclusão
+Convention: the `GG-` prefix marks a global group by role. Permissions on resources are granted to groups, never to individual users.
 
-- `Test-ADLab.ps1` roda sem erro em uma VM recém-criada
-- Cada controle da seção 3 tem uma evidência correspondente no README
-- Uma senha fraca é rejeitada na criação e na troca
-- Três tentativas erradas geram evento 4740 no Security log do DC
+## 3. Controls and decisions
+
+| Control | Value | Rationale |
+|---------|-------|-----------|
+| Minimum length | 12 characters | NIST 800-63B favors length over rigid composition rules. 12 is a practical floor for a lab with complexity enabled. |
+| Complexity | Enabled | Keeps compatibility with CIS-style audit checks and with environments that still require it. |
+| Maximum age | 90 days | Common corporate baseline. Revisit if the organization adopts NIST guidance (no periodic expiry when MFA is in place). |
+| History | 5 passwords | Prevents immediate reuse. |
+| Lockout | 3 attempts in 30 min, 30 min lockout | Limits brute force without creating a trivial denial of service. |
+| Initial password | Must change at first logon | No initial password defined for the lab is meant to be reused elsewhere. |
+| Service accounts | Password never expires, documented exception | Services cannot change passwords interactively. Mitigation: long password, access restricted by group, periodic review. |
+| Auditing | Logon and group management (success and failure) | Allows detection of access attempts and privilege changes. |
+
+## 4. Secrets
+
+- No password is written in the scripts. They prompt for passwords at run time (`Read-Host -AsSecureString`).
+- Lab passwords are kept only in the author's password manager.
+- If any test password was ever committed, treat it as compromised: change it and rewrite the history before making the repository public.
+
+## 5. Execution plan
+
+| Step | Deliverable | Suggested commit |
+|------|-------------|------------------|
+| 1 | DESIGN.md and initial README | `docs: initial lab design` |
+| 2 | VM setup and DC promotion | `docs: domain controller installation steps` |
+| 3 | OUs, groups and users | `feat: script to create OUs, groups and users` |
+| 4 | Password policy and auditing | `feat: password policy and auditing` |
+| 5 | Compliance validation | `test: control validation script` |
+| 6 | Evidence and control-to-evidence table | `docs: README with evidence` |
+
+## 6. Completion criteria
+
+- `Test-ADLab.ps1` runs without errors on a freshly built VM
+- Every control in section 3 has a matching piece of evidence in the README
+- A weak password is rejected both on user creation and on password change
+- Three wrong attempts generate event 4740 in the DC Security log

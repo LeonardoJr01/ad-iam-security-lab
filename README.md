@@ -30,22 +30,22 @@ Out of scope for this phase: MFA, Entra ID integration, PAM, LAPS and GPO harden
 
 ```
 lab.local
-├── Administradores     administrative accounts
-├── Usuarios
-│   ├── Padrao          standard users
-│   └── Sensivel        users with access to restricted data
-├── Servicos            service accounts
-└── Grupos              security groups
+├── Admins              administrative accounts
+├── Users
+│   ├── Standard        standard users
+│   └── Sensitive       users with access to restricted data
+├── Services            service accounts
+└── Groups              security groups
 ```
 
 ### Groups
 
 | Group | Purpose |
 |-------|---------|
-| `GG-Admins-Lab` | Lab administration |
-| `GG-Usuarios-Padrao` | Standard access |
-| `GG-Usuarios-Sensivel` | Access to restricted data |
-| `GG-Servicos` | Service accounts |
+| `GG-Lab-Admins` | Lab administration |
+| `GG-Standard-Users` | Standard access |
+| `GG-Sensitive-Users` | Access to restricted data |
+| `GG-Service-Accounts` | Service accounts |
 
 Full rationale and trade-offs are in [`DESIGN.md`](DESIGN.md).
 
@@ -72,13 +72,13 @@ Each control is meant to be backed by a command anyone can run and an output fil
 
 | Control | Validation command | Evidence | Status |
 |---------|--------------------|----------|--------|
-| OU structure | `Get-ADOrganizationalUnit -Filter *` | `docs/saidas/ous.txt` | pending |
-| Groups and membership | `Get-ADGroupMember -Identity <group>` | `docs/saidas/grupos.txt` | pending |
-| Password policy | `Get-ADDefaultDomainPasswordPolicy` | `docs/saidas/password-policy.txt` | pending |
-| Weak password rejected | Attempt to set `123` on a test user | `docs/evidencias/03-weak-password.png` | pending |
-| Account lockout | 3 failed logons, then Event ID 4740 in the Security log | `docs/evidencias/04-lockout-4740.png` | pending |
-| Auditing enabled | `auditpol /get /category:*` | `docs/saidas/auditpol.txt` | pending |
-| Service account exception | `Get-ADUser -Filter {PasswordNeverExpires -eq $true}` | `docs/saidas/service-accounts.txt` | pending |
+| OU structure | `Get-ADOrganizationalUnit -Filter *` | `docs/outputs/ous.txt` | pending |
+| Groups and membership | `Get-ADGroupMember -Identity <group>` | `docs/outputs/groups.txt` | pending |
+| Password policy | `Get-ADDefaultDomainPasswordPolicy` | `docs/outputs/password-policy.txt` | pending |
+| Weak password rejected | Attempt to set `123` on a test user | `docs/evidence/03-weak-password.png` | pending |
+| Account lockout | 3 failed logons, then Event ID 4740 in the Security log | `docs/evidence/04-lockout-4740.png` | pending |
+| Auditing enabled | `auditpol /get /category:*` | `docs/outputs/auditpol.txt` | pending |
+| Service account exception | `Get-ADUser -Filter {PasswordNeverExpires -eq $true}` | `docs/outputs/service-accounts.txt` | pending |
 
 ## Repository layout
 
@@ -91,8 +91,8 @@ Each control is meant to be backed by a command anyone can run and an output fil
 │   ├── Harden-ADLab.ps1     password policy and auditing (planned)
 │   └── Test-ADLab.ps1       compliance checks (planned)
 └── docs/
-    ├── evidencias/          numbered screenshots
-    └── saidas/              command output as text
+    ├── evidence/            numbered screenshots
+    └── outputs/             command output as text
 ```
 
 ## How to reproduce
@@ -103,7 +103,7 @@ Planned flow once the scripts are published:
 2. Set a static IP, point DNS to `127.0.0.1` and rename the host to `DC01`.
 3. Install AD DS and promote the server to a new forest (`lab.local`).
 4. Run `scripts/Setup-ADLab.ps1`, then `scripts/Harden-ADLab.ps1`, then `scripts/Test-ADLab.ps1`.
-5. Compare the output with the files in `docs/saidas/`.
+5. Compare the output with the files in `docs/outputs/`.
 
 The Windows Firewall stays enabled. Only the ports required by AD DS and DNS are allowed (53, 88, 135, 389, 445, 464, 636, 3268, 3269 and the dynamic RPC range).
 
