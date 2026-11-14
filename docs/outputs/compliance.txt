@@ -1,0 +1,57 @@
+﻿AD IAM Security Lab - compliance report
+Domain: lab.local   Host: DC01   Date: 2026-11-14 10:34
+
+
+Result Area       Check                                             Detail                     
+------ ----       -----                                             ------                     
+PASS   OU         Exists: OU=Admins,DC=lab,DC=local                                            
+PASS   OU         Exists: OU=Employees,DC=lab,DC=local                                         
+PASS   OU         Exists: OU=Services,DC=lab,DC=local                                          
+PASS   OU         Exists: OU=Groups,DC=lab,DC=local                                            
+PASS   OU         Exists: OU=Standard,OU=Employees,DC=lab,DC=local                             
+PASS   OU         Exists: OU=Sensitive,OU=Employees,DC=lab,DC=local                            
+PASS   Group      Exists: GG-Lab-Admins                                                        
+PASS   Group      Exists: GG-Standard-Users                                                    
+PASS   Group      Exists: GG-Sensitive-Users                                                   
+PASS   Group      Exists: GG-Service-Accounts                                                  
+PASS   User       adm.master is enabled                                                        
+PASS   User       adm.master is in the correct OU                                              
+PASS   Membership adm.master is in GG-Lab-Admins                                               
+PASS   Exception  adm.master PasswordNeverExpires = False                                      
+PASS   User       joao.silva is enabled                                                        
+PASS   User       joao.silva is in the correct OU                                              
+PASS   Membership joao.silva is in GG-Standard-Users                                           
+PASS   Exception  joao.silva PasswordNeverExpires = False                                      
+PASS   User       maria.santos is enabled                                                      
+PASS   User       maria.santos is in the correct OU                                            
+PASS   Membership maria.santos is in GG-Standard-Users                                         
+PASS   Exception  maria.santos PasswordNeverExpires = False                                    
+PASS   User       finance.manager is enabled                                                   
+PASS   User       finance.manager is in the correct OU                                         
+PASS   Membership finance.manager is in GG-Sensitive-Users                                     
+PASS   Exception  finance.manager PasswordNeverExpires = False                                 
+PASS   User       svc.backup is enabled                                                        
+PASS   User       svc.backup is in the correct OU                                              
+PASS   Membership svc.backup is in GG-Service-Accounts                                         
+PASS   Exception  svc.backup PasswordNeverExpires = True                                       
+PASS   Password   Minimum length = 12                               actual: 12                 
+PASS   Password   Complexity enabled                                actual: True               
+PASS   Password   Maximum age = 90 days                             actual: 90                 
+PASS   Password   Minimum age = 1 day                               actual: 1                  
+PASS   Password   History = 5                                       actual: 5                  
+PASS   Password   Reversible encryption disabled                    actual: False              
+PASS   Lockout    Threshold = 3                                     actual: 3                  
+PASS   Lockout    Observation window = 30 min                       actual: 30                 
+PASS   Lockout    Duration = 30 min                                 actual: 30                 
+PASS   Password   Weak password (123) is rejected                                              
+PASS   Audit      Logon: success and failure                        actual: Success and Failure
+PASS   Audit      Account Lockout: success and failure              actual: Success and Failure
+PASS   Audit      Credential Validation: success and failure        actual: Success and Failure
+PASS   Audit      User Account Management: success and failure      actual: Success and Failure
+PASS   Audit      Security Group Management: success and failure    actual: Success and Failure
+PASS   Firewall   Domain profile enabled                            actual: True               
+PASS   Firewall   Private profile enabled                           actual: True               
+PASS   Firewall   Public profile enabled                            actual: True
+
+Total: 48   Passed: 48   Failed: 0
+Not automated: account lockout (manual evidence, Event ID 4740).
