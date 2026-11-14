@@ -21,7 +21,7 @@ Out of scope for this phase: MFA, cloud integration (Entra ID), PAM, LAPS.
 | VM name | DC01 |
 | Domain | lab.local (NetBIOS: LAB) |
 | Functional level | WinThreshold (2016+) |
-| Network | Internal network or Host-only adapter, static IP 192.168.56.10 |
+| Network | Static IP 192.168.1.10/24 |
 | DNS | Served by the DC itself (127.0.0.1) |
 
 Network note: do not use NAT for the DC. With NAT, a client VM cannot resolve the domain or reach the DC, which blocks authentication tests from a second machine.
