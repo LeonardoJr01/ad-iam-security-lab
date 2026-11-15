@@ -102,11 +102,11 @@ $ServicePassword = Read-LabPassword 'Password for svc.backup (12+ chars)'
 
 Write-Host "`n=== Organizational Units ===" -ForegroundColor Cyan
 Ensure-OU -Name 'Admins'    -Path $DomainDN
-Ensure-OU -Name 'Users'     -Path $DomainDN
+Ensure-OU -Name 'Employees' -Path $DomainDN
 Ensure-OU -Name 'Services'  -Path $DomainDN
 Ensure-OU -Name 'Groups'    -Path $DomainDN
-Ensure-OU -Name 'Standard'  -Path "OU=Users,$DomainDN"
-Ensure-OU -Name 'Sensitive' -Path "OU=Users,$DomainDN"
+Ensure-OU -Name 'Standard'  -Path "OU=Employees,$DomainDN"
+Ensure-OU -Name 'Sensitive' -Path "OU=Employees,$DomainDN"
 
 # ---------------------------------------------------------------- groups
 
@@ -124,13 +124,13 @@ Ensure-User -Sam 'adm.master'      -GivenName 'Admin'   -Surname 'Master'  `
     -Path "OU=Admins,$DomainDN"                 -Group 'GG-Lab-Admins'       -Password $AdminPassword
 
 Ensure-User -Sam 'joao.silva'      -GivenName 'Joao'    -Surname 'Silva'   `
-    -Path "OU=Standard,OU=Users,$DomainDN"      -Group 'GG-Standard-Users'   -Password $UserPassword
+    -Path "OU=Standard,OU=Employees,$DomainDN"      -Group 'GG-Standard-Users'   -Password $UserPassword
 
 Ensure-User -Sam 'maria.santos'    -GivenName 'Maria'   -Surname 'Santos'  `
-    -Path "OU=Standard,OU=Users,$DomainDN"      -Group 'GG-Standard-Users'   -Password $UserPassword
+    -Path "OU=Standard,OU=Employees,$DomainDN"      -Group 'GG-Standard-Users'   -Password $UserPassword
 
 Ensure-User -Sam 'finance.manager' -GivenName 'Finance' -Surname 'Manager' `
-    -Path "OU=Sensitive,OU=Users,$DomainDN"     -Group 'GG-Sensitive-Users'  -Password $UserPassword
+    -Path "OU=Sensitive,OU=Employees,$DomainDN"     -Group 'GG-Sensitive-Users'  -Password $UserPassword
 
 Ensure-User -Sam 'svc.backup'      -GivenName 'Service' -Surname 'Backup'  `
     -Path "OU=Services,$DomainDN"               -Group 'GG-Service-Accounts' -Password $ServicePassword `
