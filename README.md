@@ -2,7 +2,7 @@
 
 A Windows Server 2022 Active Directory lab built to practice Identity and Access Management (IAM) fundamentals: organizational structure, role-based groups, password and lockout policy, auditing, and repeatable provisioning with PowerShell.
 
-> **Status:** implemented and validated. All 48 automated checks pass. One evidence item is still pending: the `dcdiag` re-run.
+> **Status:** implemented and validated. All 48 automated checks pass. `dcdiag` passes 26 of 28 tests; the two failures are event-log tests and are explained under "Issues found and resolved".
 
 ## Goals
 
@@ -83,7 +83,7 @@ Each control is backed by a command anyone can run and an output file or screens
 | Auditing enabled | `auditpol /get /category:*` | `docs/outputs/auditpol.txt` | done |
 | Service account exception | `Get-ADUser -Filter {PasswordNeverExpires -eq $true}` | `docs/outputs/service-accounts.txt` | done |
 | Automated compliance | `scripts/Test-ADLab.ps1 -OutFile compliance.txt` | `docs/outputs/compliance.txt` (48 of 48 pass) | done |
-| Domain controller health | `dcdiag` | `docs/outputs/dcdiag.txt` | pending |
+| Domain controller health | `dcdiag` | `docs/outputs/dcdiag.txt` (26 of 28 tests pass, 2 known failures) | done |
 
 Account lockout is validated manually because it needs real failed logons.
 
@@ -123,7 +123,7 @@ The scripts ask for three passwords at run time (administrative account, standar
 | `Set-NetFirewallProfile -Enabled $false` fails with a `GpoBoolean` cast error | The parameter takes `True` or `False`, not a PowerShell boolean | Use `-Enabled True` or `-Enabled False` |
 | A script fails to parse with "string is missing the terminator" | Non-ASCII characters in a file without BOM were read as Windows-1252 by Windows PowerShell 5.1, and one byte became a quotation mark | Scripts are ASCII-only |
 | `New-ADOrganizationalUnit` fails with "name already in use" for `OU=Users` | The built-in `CN=Users` container uses the same name at the domain root | The OU was renamed to `Employees` |
-| `dcdiag` fails the `DFSREvent` and `SystemLog` tests | The VM was powered off without a clean shutdown, and the events fall inside the 24 hour window the tests inspect | Wait 24 hours and re-run; the logs are not cleared |
+| `dcdiag` fails the `DFSREvent` and `SystemLog` tests | The VM was shut down uncleanly (Windows logged unexpected shutdowns on 10 and 14 November) and both tests flag error events from the last 24 hours. Startup also logged DNS lookups timing out before the DNS service was ready, plus warnings about WinRM SPNs, DCOM permissions and the time provider | Evidence kept as generated. The other 26 tests pass, including replication, SYSVOL, NetLogon and RID manager. To clear the failures, shut the VM down from Windows and re-run after 24 hours of clean uptime. The logs are not cleared |
 | First compliance run reported 6 failures | The copy of the test script inside the VM still used the old OU name | Test script updated; second run passed 48 of 48 |
 
 ## Known limitations
@@ -141,7 +141,7 @@ The scripts ask for three passwords at run time (administrative account, standar
 - [x] Provisioning script
 - [x] Password policy and auditing
 - [x] Compliance test script
-- [ ] Evidence and control map completed (`dcdiag` pending)
+- [x] Evidence and control map completed (`dcdiag`: 2 known event-log failures)
 - [ ] Follow-up: GPO hardening, LAPS, Entra ID sync, MFA
 
 ## References
