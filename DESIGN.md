@@ -31,12 +31,14 @@ Network note: do not use NAT for the DC. With NAT, a client VM cannot resolve th
 ```
 lab.local
 ├── Admins              ← administrative accounts (adm.*)
-├── Users
+├── Employees
 │   ├── Standard        ← regular users
 │   └── Sensitive       ← users with access to restricted data
 ├── Services            ← service accounts (svc.*)
 └── Groups              ← security groups
 ```
+
+Naming note: the top-level OU is called `Employees`, not `Users`. Creating `OU=Users` at the domain root fails with "name already in use" because of the built-in `CN=Users` container.
 
 Reason: GPOs and delegated permissions apply per OU. Keeping administrative accounts apart from regular ones allows a different policy for each and prevents an admin account from sitting alongside user workstations.
 
